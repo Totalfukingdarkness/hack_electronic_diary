@@ -35,22 +35,20 @@ PRAISES = [
 ]
 
 
-def fix_marks(schoolkid_name):
-    schoolkid = checks_pupil(schoolkid_name)
+def fix_marks(schoolkid_name, year_of_study, group_letter):
+    schoolkid = checks_pupil(schoolkid_name, yaer_of_study, group_letter)
     if schoolkid:
-        marks_kid = Mark.objects.filter(schoolkid=schoolkid, points__in=[2, 3])
-        marks_kid.update(points=5)
+        Mark.objects.filter(schoolkid=schoolkid, points__in=[2, 3]).update(points=5)
 
 
-def remove_chastisements(schoolkid_name):
-    schoolkid = checks_pupil(schoolkid_name)
+def remove_chastisements(schoolkid_name, year_of_study, group_letter):
+    schoolkid = checks_pupil(schoolkid_name, yaer_of_study, group_letter)
     if schoolkid:
-        chastisement = Chastisement.objects.filter(schoolkid=schoolkid)
-        chastisement.delete()
+        Chastisement.objects.filter(schoolkid=schoolkid).delete()
 
 
-def create_commendation(schoolkid_name, subject):
-    schoolkid = checks_pupil(schoolkid_name)
+def create_commendation(schoolkid_name, subject, year_of_study, group_letter):
+    schoolkid = checks_pupil(schoolkid_name, yaer_of_study, group_letter)
     if schoolkid:
         lesson = Lesson.objects.filter(
             subject__title=subject, year_of_study=schoolkid.year_of_study,
@@ -63,11 +61,17 @@ def create_commendation(schoolkid_name, subject):
             print('Этот предмет у данного ученика не преподается')
 
 
-def checks_pupil(schoolkid_name):
+def checks_pupil(schoolkid_name, year_of_study=None, group_letter=None):
+    filters = {'full_name__contains': schoolkid_name}
+    if year_of_study is not None:
+        filters['year_of_study'] = year_of_study
+    if group_letter is not None:
+        filters['group_letter'] = group_letter
+
     try:
-        schoolkid = Schoolkid.objects.get(full_name__contains=schoolkid_name, year_of_study=6, group_letter='А')
+        schoolkid = Schoolkid.objects.get(**filters)
         return schoolkid
     except Schoolkid.MultipleObjectsReturned:
-        print('С этим именем есть несколько учеников')
+        print('С этим именем есть несколько учеников.')
     except Schoolkid.DoesNotExist:
-        print('В этом классе, ученика с таким именем нет')
+        print('Ученика с таким именем не найдено.')
